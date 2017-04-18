@@ -1,1 +1,615 @@
-[{"id":"e7323d4.2a3d3c","type":"tab","label":"Freddy's Playground"},{"id":"7860118d.39a41","type":"tab","label":"Mind Control"},{"id":"a9f32395.dfe9e","type":"ibmiot","z":"","name":"IoT","keepalive":"60","domain":"","cleansession":true,"appId":"","shared":false},{"id":"be9b683b.572cc8","type":"inject","z":"e7323d4.2a3d3c","name":"sendData","topic":"sendTestData","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"x":220,"y":340,"wires":[["389ee165.7e7f16"]]},{"id":"389ee165.7e7f16","type":"function","z":"e7323d4.2a3d3c","name":"sendDataFunc","func":"// Array of pseudo random temperatures\nvar temp1 = [15,17,18.5,20,21.5,23,24,22.2,19,32];\n\n// Array of pseudo random relative humidities\nvar humidity1 = [50,55,61,68,65,60,53,49,45,47];\n\n// Counter to select from array.\nvar counter1 = context.get('counter1')||0;\ncounter1 = counter1+1;\nif(counter1 > 9) counter1 = 0;\ncontext.set('counter1',counter1);\n\n// Create MQTT message in JSON\nmsg = {\n payload: JSON.stringify(\n {\n d:{\n \"temperature\" : temp1[counter1],\n \"humidity\" : humidity1[counter1] }\n }\n )\n};\nreturn msg;","outputs":1,"noerr":0,"x":447,"y":341.5,"wires":[["1c72f826.bbd79","58d07d6a.326d5c"]]},{"id":"1c72f826.bbd79","type":"ibmiot out","z":"e7323d4.2a3d3c","authentication":"apiKey","apiKey":"a9f32395.dfe9e","outputType":"evt","deviceId":"Robot","deviceType":"0.16.2","eventCommandType":"Robot","format":"json","data":"{\"d\":{\"humidity\":444, \"temperature\":989}}","qos":0,"name":"IBM IoT","service":"registered","x":642,"y":338.25,"wires":[]},{"id":"58d07d6a.326d5c","type":"debug","z":"e7323d4.2a3d3c","name":"debuger","active":true,"console":"true","complete":"payload","x":613,"y":260.25,"wires":[]},{"id":"54c73499.bb0414","type":"ibmiot in","z":"7860118d.39a41","authentication":"boundService","apiKey":"a9f32395.dfe9e","inputType":"evt","deviceId":"Mind","applicationId":"","deviceType":"+","eventType":"+","commandType":"","format":"json","name":"IBM IoT - Mind","service":"registered","allDevices":false,"allApplications":"","allDeviceTypes":true,"allEvents":true,"allCommands":"","allFormats":true,"qos":0,"x":120,"y":160,"wires":[["a2038c11.ce51a8","1932d104.0d4b07","7bdc48ee.3e5ef","e808e32f.6ad45","45be6b2d.5a5dd4","27c5d139.3e5146","ea3a5c0c.9849b8","413b9117.1cecb8","bfba5c97.7e28b8","f7f8a05f.14f948","e22b8561.2f7b7","6871525e.c97764"]]},{"id":"a2038c11.ce51a8","type":"function","z":"7860118d.39a41","name":"BB8-Connect","func":"if(msg.payload.connect){\n    msg.text = msg.payload.text = 'We are connected BB8 with IBM IoT Platform!';\n    msg.deviceId = 'Robot';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#connect';\n    return msg;\n}\n\nreturn null;","outputs":1,"noerr":0,"x":480,"y":260,"wires":[["6012060d.d1a2","c2946500.7481b8","89f124a7.6cdf6"]]},{"id":"1932d104.0d4b07","type":"function","z":"7860118d.39a41","name":"BB8-Run","func":"if(msg.payload.data) {\n    if(msg.payload.eSense.attention > 50 && \n    msg.payload.eSense.attention - msg.payload.eSense.meditation > 15) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n\n        msg.payload.action = '#run';\n        return msg;\n    }\n}\n\nreturn null;","outputs":1,"noerr":0,"x":460,"y":380,"wires":[["d3bb2770.0e45e8"]]},{"id":"7bdc48ee.3e5ef","type":"function","z":"7860118d.39a41","name":"BB8-Turn","func":"if(msg.payload.turn) {\n    msg.deviceId = 'Robot';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#turn';\n\n    return msg;\n}\n\nreturn null;","outputs":1,"noerr":0,"x":460,"y":320,"wires":[["6012060d.d1a2","c2946500.7481b8"]]},{"id":"e808e32f.6ad45","type":"function","z":"7860118d.39a41","name":"BB8-Back","func":"if(msg.payload.data) {\n    if(msg.payload.eSense.meditation - msg.payload.eSense.attention < 15 && msg.payload.eSense.meditation > 50) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n\n        msg.payload.action = '#back';\n        return msg;\n    }\n\n}\nreturn null;","outputs":1,"noerr":0,"x":470,"y":440,"wires":[["d3bb2770.0e45e8"]]},{"id":"45be6b2d.5a5dd4","type":"function","z":"7860118d.39a41","name":"BB8-Spin","func":"if(msg.payload.spin) {\n    if(msg.payload.blinkStrength > 200) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n    \n        msg.payload.action = '#spin';\n        return msg;\n    }\n}\nreturn null;","outputs":1,"noerr":0,"x":460,"y":500,"wires":[["6012060d.d1a2","c2946500.7481b8"]]},{"id":"d3bb2770.0e45e8","type":"trigger","z":"7860118d.39a41","op1":"","op2":"","op1type":"pay","op2type":"pay","duration":"1000","extend":true,"units":"ms","reset":"","name":"Delay Run and Back for 1 second","x":780,"y":380,"wires":[["6012060d.d1a2","c2946500.7481b8"]]},{"id":"27c5d139.3e5146","type":"function","z":"7860118d.39a41","name":"BB8-Stop","func":"if(msg.payload.data) {\n    if(msg.payload.blinkStrength > 35 && msg.payload.blinkStrength < 80) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n    \n        msg.payload.action = '#stop';\n        return msg;\n    }\n}\n\nreturn null;","outputs":1,"noerr":0,"x":460,"y":560,"wires":[["6012060d.d1a2","c2946500.7481b8"]]},{"id":"ea3a5c0c.9849b8","type":"function","z":"7860118d.39a41","name":"BB8-Color","func":"if(msg.payload.blink) {\n    if(msg.payload.blinkStrength > 100) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n    \n        msg.payload.action = '#color';\n        return msg;\n    }\n}\n\nreturn null;","outputs":1,"noerr":0,"x":470,"y":620,"wires":[["6012060d.d1a2","c2946500.7481b8"]]},{"id":"6012060d.d1a2","type":"debug","z":"7860118d.39a41","name":"IBM IoT Debug Output","active":true,"console":"false","complete":"payload","x":1240,"y":400,"wires":[]},{"id":"aca108cd.6ee18","type":"comment","z":"7860118d.39a41","name":"Send commands to subscribers","info":"","x":1290,"y":80,"wires":[]},{"id":"644bb73a.457f58","type":"comment","z":"7860118d.39a41","name":"Read your mind","info":"","x":120,"y":80,"wires":[]},{"id":"413b9117.1cecb8","type":"function","z":"7860118d.39a41","name":"BB8-Disconnect","func":"if(msg.payload.disconnect) {\n    msg.deviceId = 'Robot';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#disconnect';\n    return msg;\n}\n\nreturn null;","outputs":1,"noerr":0,"x":480,"y":680,"wires":[[]]},{"id":"bfba5c97.7e28b8","type":"function","z":"7860118d.39a41","name":"Light-On","func":"if(msg.payload.lightOn) {\n    msg.deviceId = 'Light';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#on';\n    return msg;\n}\n\n\nreturn null;","outputs":1,"noerr":0,"x":460,"y":740,"wires":[["a1f5030.5ffa58","6012060d.d1a2"]]},{"id":"f7f8a05f.14f948","type":"function","z":"7860118d.39a41","name":"Light-Off","func":"if(msg.payload.lightOff) {\n    msg.deviceId = 'Light';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#off';\n    return msg;\n}\nreturn null;","outputs":1,"noerr":0,"x":460,"y":800,"wires":[["a1f5030.5ffa58","6012060d.d1a2"]]},{"id":"a1f5030.5ffa58","type":"ibmiot out","z":"7860118d.39a41","authentication":"boundService","apiKey":"a9f32395.dfe9e","outputType":"evt","deviceId":"Light","deviceType":"Robot","eventCommandType":"blink","format":"json","data":"___","qos":0,"name":"IBM IoT - Studio Lights","service":"registered","x":1238,"y":730,"wires":[]},{"id":"e22b8561.2f7b7","type":"function","z":"7860118d.39a41","name":"Arm-Control","func":"if(msg.payload.arm) {\n    msg.deviceId = 'Arm';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#on';\n    return msg;\n}\n\nreturn null;","outputs":1,"noerr":0,"x":470,"y":860,"wires":[["670034bf.c0f914"]]},{"id":"ffa8c831.b073a","type":"comment","z":"7860118d.39a41","name":"Convert your mind to command","info":"","x":530,"y":80,"wires":[]},{"id":"670034bf.c0f914","type":"ibmiot out","z":"7860118d.39a41","authentication":"boundService","apiKey":"a9f32395.dfe9e","outputType":"evt","deviceId":"Arm","deviceType":"Robot","eventCommandType":"move","format":"json","data":"___","qos":0,"name":"IBM IoT - Robot Arm","service":"registered","x":1228,"y":850,"wires":[]},{"id":"89f124a7.6cdf6","type":"http request","z":"7860118d.39a41","name":"Slack channel","method":"POST","ret":"txt","url":"https://hooks.slack.com/services/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","tls":"","x":760,"y":180,"wires":[[]]},{"id":"c2946500.7481b8","type":"ibmiot out","z":"7860118d.39a41","authentication":"boundService","apiKey":"a9f32395.dfe9e","outputType":"evt","deviceId":"Robot","deviceType":"Robot","eventCommandType":"Run","format":"json","data":"{}","qos":0,"name":"IBM IoT - BB8","service":"registered","x":1220,"y":240,"wires":[]},{"id":"6b213bda.dc4b74","type":"inject","z":"7860118d.39a41","name":"","topic":"Test Run","payload":"{ \"action\": \"#run\" }","payloadType":"json","repeat":"","crontab":"","once":false,"x":1140.5,"y":614.75,"wires":[["c2946500.7481b8","6012060d.d1a2"]]},{"id":"c647576c.377838","type":"comment","z":"e7323d4.2a3d3c","name":"Hi Freddy, Check the Mind Control, it works.","info":":P","x":390,"y":60,"wires":[]},{"id":"49e36c5a.6c590c","type":"ibmiot in","z":"e7323d4.2a3d3c","authentication":"apiKey","apiKey":"a9f32395.dfe9e","inputType":"evt","deviceId":"Robot","applicationId":"","deviceType":"+","eventType":"+","commandType":"","format":"json","name":"IBM IoT","service":"registered","allDevices":"","allApplications":"","allDeviceTypes":true,"allEvents":true,"allCommands":"","allFormats":"","qos":0,"x":214.5,"y":442.25,"wires":[["1c388f3c.60cee1"]]},{"id":"1c388f3c.60cee1","type":"debug","z":"e7323d4.2a3d3c","name":"output","active":true,"console":"false","complete":"payload","x":372.5,"y":443.5,"wires":[]},{"id":"6bd44354.175c6c","type":"comment","z":"e7323d4.2a3d3c","name":"Michael,  my idea works as well.  debug input.","info":"","x":392.5,"y":183.75,"wires":[]},{"id":"1d4ad495.30bbe3","type":"inject","z":"7860118d.39a41","name":"","topic":"Test Spin","payload":"{ \"action\": \"#spin\" }","payloadType":"json","repeat":"","crontab":"","once":false,"x":1140,"y":663,"wires":[["c2946500.7481b8","6012060d.d1a2"]]},{"id":"ea9cc75.73a0c38","type":"inject","z":"7860118d.39a41","name":"","topic":"Test Color","payload":"{\"action\": \"#color\"}","payloadType":"json","repeat":"","crontab":"","once":false,"x":1141,"y":566,"wires":[["c2946500.7481b8","6012060d.d1a2"]]},{"id":"8590fc69.9dfad","type":"inject","z":"7860118d.39a41","name":"","topic":"Test Back","payload":"{\"action\": \"#back\"}","payloadType":"json","repeat":"","crontab":"","once":false,"x":1140,"y":520,"wires":[["c2946500.7481b8","6012060d.d1a2"]]},{"id":"cbdc32ba.98ef2","type":"comment","z":"7860118d.39a41","name":"* Car and Robot arm control is In Progress","info":"","x":820,"y":860,"wires":[]},{"id":"6871525e.c97764","type":"function","z":"7860118d.39a41","name":"Car-Control","func":"if(msg.payload.car) {\n    msg.deviceId = 'Car';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#start-engine';\n    return msg;\n}\n\nreturn null;","outputs":1,"noerr":0,"x":470,"y":920,"wires":[[]]}]
+[
+    {
+        "id": "e7323d4.2a3d3c",
+        "type": "tab",
+        "label": "Freddy's Playground"
+    },
+    {
+        "id": "7860118d.39a41",
+        "type": "tab",
+        "label": "Mind Control"
+    },
+    {
+        "id": "a9f32395.dfe9e",
+        "type": "ibmiot",
+        "z": "",
+        "name": "IoT",
+        "keepalive": "60",
+        "domain": "",
+        "cleansession": true,
+        "appId": "",
+        "shared": false
+    },
+    {
+        "id": "be9b683b.572cc8",
+        "type": "inject",
+        "z": "e7323d4.2a3d3c",
+        "name": "sendData",
+        "topic": "sendTestData",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "x": 220,
+        "y": 340,
+        "wires": [
+            [
+                "389ee165.7e7f16"
+            ]
+        ]
+    },
+    {
+        "id": "389ee165.7e7f16",
+        "type": "function",
+        "z": "e7323d4.2a3d3c",
+        "name": "sendDataFunc",
+        "func": "// Array of pseudo random temperatures\nvar temp1 = [15,17,18.5,20,21.5,23,24,22.2,19,32];\n\n// Array of pseudo random relative humidities\nvar humidity1 = [50,55,61,68,65,60,53,49,45,47];\n\n// Counter to select from array.\nvar counter1 = context.get('counter1')||0;\ncounter1 = counter1+1;\nif(counter1 > 9) counter1 = 0;\ncontext.set('counter1',counter1);\n\n// Create MQTT message in JSON\nmsg = {\n payload: JSON.stringify(\n {\n d:{\n \"temperature\" : temp1[counter1],\n \"humidity\" : humidity1[counter1] }\n }\n )\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 447,
+        "y": 341.5,
+        "wires": [
+            [
+                "1c72f826.bbd79",
+                "58d07d6a.326d5c"
+            ]
+        ]
+    },
+    {
+        "id": "1c72f826.bbd79",
+        "type": "ibmiot out",
+        "z": "e7323d4.2a3d3c",
+        "authentication": "apiKey",
+        "apiKey": "a9f32395.dfe9e",
+        "outputType": "evt",
+        "deviceId": "Robot",
+        "deviceType": "0.16.2",
+        "eventCommandType": "Robot",
+        "format": "json",
+        "data": "{\"d\":{\"humidity\":444, \"temperature\":989}}",
+        "qos": 0,
+        "name": "IBM IoT",
+        "service": "registered",
+        "x": 642,
+        "y": 338.25,
+        "wires": []
+    },
+    {
+        "id": "58d07d6a.326d5c",
+        "type": "debug",
+        "z": "e7323d4.2a3d3c",
+        "name": "debuger",
+        "active": true,
+        "console": "true",
+        "complete": "payload",
+        "x": 613,
+        "y": 260.25,
+        "wires": []
+    },
+    {
+        "id": "54c73499.bb0414",
+        "type": "ibmiot in",
+        "z": "7860118d.39a41",
+        "authentication": "boundService",
+        "apiKey": "a9f32395.dfe9e",
+        "inputType": "evt",
+        "deviceId": "Mind",
+        "applicationId": "",
+        "deviceType": "+",
+        "eventType": "+",
+        "commandType": "",
+        "format": "json",
+        "name": "IBM IoT - Mind",
+        "service": "registered",
+        "allDevices": false,
+        "allApplications": "",
+        "allDeviceTypes": true,
+        "allEvents": true,
+        "allCommands": "",
+        "allFormats": true,
+        "qos": 0,
+        "x": 120,
+        "y": 160,
+        "wires": [
+            [
+                "a2038c11.ce51a8",
+                "1932d104.0d4b07",
+                "7bdc48ee.3e5ef",
+                "e808e32f.6ad45",
+                "45be6b2d.5a5dd4",
+                "27c5d139.3e5146",
+                "ea3a5c0c.9849b8",
+                "413b9117.1cecb8",
+                "bfba5c97.7e28b8",
+                "f7f8a05f.14f948",
+                "e22b8561.2f7b7",
+                "6871525e.c97764"
+            ]
+        ]
+    },
+    {
+        "id": "a2038c11.ce51a8",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "BB8-Connect",
+        "func": "if(msg.payload.connect){\n    msg.text = msg.payload.text = 'We are connected BB8 with IBM IoT Platform!';\n    msg.deviceId = 'Robot';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#connect';\n    return msg;\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 480,
+        "y": 260,
+        "wires": [
+            [
+                "6012060d.d1a2",
+                "c2946500.7481b8",
+                "89f124a7.6cdf6"
+            ]
+        ]
+    },
+    {
+        "id": "1932d104.0d4b07",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "BB8-Run",
+        "func": "if(msg.payload.data) {\n    if(msg.payload.eSense.attention > 45) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n\n        msg.payload.action = '#run';\n        return msg;\n    }\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 460,
+        "y": 380,
+        "wires": [
+            [
+                "d3bb2770.0e45e8"
+            ]
+        ]
+    },
+    {
+        "id": "7bdc48ee.3e5ef",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "BB8-Turn",
+        "func": "if(msg.payload.turn) {\n    msg.deviceId = 'Robot';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#turn';\n\n    return msg;\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 460,
+        "y": 320,
+        "wires": [
+            [
+                "6012060d.d1a2",
+                "c2946500.7481b8"
+            ]
+        ]
+    },
+    {
+        "id": "e808e32f.6ad45",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "BB8-Back",
+        "func": "if(msg.payload.data) {\n    if(msg.payload.eSense.meditation > 45) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n\n        msg.payload.action = '#back';\n        return msg;\n    }\n\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 470,
+        "y": 440,
+        "wires": [
+            [
+                "d3bb2770.0e45e8"
+            ]
+        ]
+    },
+    {
+        "id": "45be6b2d.5a5dd4",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "BB8-Spin",
+        "func": "if(msg.payload.spin) {\n    if(msg.payload.blinkStrength > 200) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n    \n        msg.payload.action = '#spin';\n        return msg;\n    }\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 460,
+        "y": 500,
+        "wires": [
+            [
+                "6012060d.d1a2",
+                "c2946500.7481b8"
+            ]
+        ]
+    },
+    {
+        "id": "d3bb2770.0e45e8",
+        "type": "trigger",
+        "z": "7860118d.39a41",
+        "op1": "",
+        "op2": "",
+        "op1type": "pay",
+        "op2type": "pay",
+        "duration": "1000",
+        "extend": true,
+        "units": "ms",
+        "reset": "",
+        "name": "Delay Run and Back for 1 second",
+        "x": 780,
+        "y": 380,
+        "wires": [
+            [
+                "6012060d.d1a2",
+                "c2946500.7481b8"
+            ]
+        ]
+    },
+    {
+        "id": "27c5d139.3e5146",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "BB8-Stop",
+        "func": "if(msg.payload.data) {\n    if(msg.payload.blinkStrength > 40 && msg.payload.blinkStrength < 70) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n    \n        msg.payload.action = '#stop';\n        return msg;\n    }\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 460,
+        "y": 560,
+        "wires": [
+            [
+                "6012060d.d1a2",
+                "c2946500.7481b8"
+            ]
+        ]
+    },
+    {
+        "id": "ea3a5c0c.9849b8",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "BB8-Color",
+        "func": "if(msg.payload.blink) {\n    if(msg.payload.blinkStrength > 100) {\n        msg.deviceId = 'Robot';\n        msg.deviceType = 'Robot';\n        msg.eventCommandType = 'Run';\n    \n        msg.payload.action = '#color';\n        return msg;\n    }\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 470,
+        "y": 620,
+        "wires": [
+            [
+                "6012060d.d1a2",
+                "c2946500.7481b8"
+            ]
+        ]
+    },
+    {
+        "id": "6012060d.d1a2",
+        "type": "debug",
+        "z": "7860118d.39a41",
+        "name": "IBM IoT Debug Output",
+        "active": true,
+        "console": "false",
+        "complete": "payload",
+        "x": 1240,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "aca108cd.6ee18",
+        "type": "comment",
+        "z": "7860118d.39a41",
+        "name": "Send commands to subscribers",
+        "info": "",
+        "x": 1290,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "644bb73a.457f58",
+        "type": "comment",
+        "z": "7860118d.39a41",
+        "name": "Read your mind",
+        "info": "",
+        "x": 120,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "413b9117.1cecb8",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "BB8-Disconnect",
+        "func": "if(msg.payload.disconnect) {\n    msg.deviceId = 'Robot';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#disconnect';\n    return msg;\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 480,
+        "y": 680,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bfba5c97.7e28b8",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "Light-On",
+        "func": "if(msg.payload.lightOn) {\n    msg.deviceId = 'Light';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#on';\n    return msg;\n}\n\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 460,
+        "y": 740,
+        "wires": [
+            [
+                "a1f5030.5ffa58",
+                "6012060d.d1a2"
+            ]
+        ]
+    },
+    {
+        "id": "f7f8a05f.14f948",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "Light-Off",
+        "func": "if(msg.payload.lightOff) {\n    msg.deviceId = 'Light';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#off';\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 460,
+        "y": 800,
+        "wires": [
+            [
+                "a1f5030.5ffa58",
+                "6012060d.d1a2"
+            ]
+        ]
+    },
+    {
+        "id": "a1f5030.5ffa58",
+        "type": "ibmiot out",
+        "z": "7860118d.39a41",
+        "authentication": "boundService",
+        "apiKey": "a9f32395.dfe9e",
+        "outputType": "evt",
+        "deviceId": "Light",
+        "deviceType": "Robot",
+        "eventCommandType": "blink",
+        "format": "json",
+        "data": "___",
+        "qos": 0,
+        "name": "IBM IoT - Studio Lights",
+        "service": "registered",
+        "x": 1238,
+        "y": 730,
+        "wires": []
+    },
+    {
+        "id": "e22b8561.2f7b7",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "Arm-Control",
+        "func": "if(msg.payload.arm) {\n    msg.deviceId = 'Arm';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#on';\n    return msg;\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 470,
+        "y": 860,
+        "wires": [
+            [
+                "670034bf.c0f914"
+            ]
+        ]
+    },
+    {
+        "id": "ffa8c831.b073a",
+        "type": "comment",
+        "z": "7860118d.39a41",
+        "name": "Convert your mind to command",
+        "info": "",
+        "x": 530,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "670034bf.c0f914",
+        "type": "ibmiot out",
+        "z": "7860118d.39a41",
+        "authentication": "boundService",
+        "apiKey": "a9f32395.dfe9e",
+        "outputType": "evt",
+        "deviceId": "Arm",
+        "deviceType": "Robot",
+        "eventCommandType": "move",
+        "format": "json",
+        "data": "___",
+        "qos": 0,
+        "name": "IBM IoT - Robot Arm",
+        "service": "registered",
+        "x": 1228,
+        "y": 850,
+        "wires": []
+    },
+    {
+        "id": "89f124a7.6cdf6",
+        "type": "http request",
+        "z": "7860118d.39a41",
+        "name": "Slack channel",
+        "method": "POST",
+        "ret": "txt",
+        "url": "https://hooks.slack.com/services/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",
+        "tls": "",
+        "x": 760,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c2946500.7481b8",
+        "type": "ibmiot out",
+        "z": "7860118d.39a41",
+        "authentication": "boundService",
+        "apiKey": "a9f32395.dfe9e",
+        "outputType": "evt",
+        "deviceId": "Robot",
+        "deviceType": "Robot",
+        "eventCommandType": "Run",
+        "format": "json",
+        "data": "{}",
+        "qos": 0,
+        "name": "IBM IoT - BB8",
+        "service": "registered",
+        "x": 1220,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "6b213bda.dc4b74",
+        "type": "inject",
+        "z": "7860118d.39a41",
+        "name": "",
+        "topic": "Test Run",
+        "payload": "{ \"action\": \"#run\" }",
+        "payloadType": "json",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "x": 1140.5,
+        "y": 614.75,
+        "wires": [
+            [
+                "c2946500.7481b8",
+                "6012060d.d1a2"
+            ]
+        ]
+    },
+    {
+        "id": "c647576c.377838",
+        "type": "comment",
+        "z": "e7323d4.2a3d3c",
+        "name": "Hi Freddy, Check the Mind Control, it works.",
+        "info": ":P",
+        "x": 390,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "49e36c5a.6c590c",
+        "type": "ibmiot in",
+        "z": "e7323d4.2a3d3c",
+        "authentication": "apiKey",
+        "apiKey": "a9f32395.dfe9e",
+        "inputType": "evt",
+        "deviceId": "Robot",
+        "applicationId": "",
+        "deviceType": "+",
+        "eventType": "+",
+        "commandType": "",
+        "format": "json",
+        "name": "IBM IoT",
+        "service": "registered",
+        "allDevices": "",
+        "allApplications": "",
+        "allDeviceTypes": true,
+        "allEvents": true,
+        "allCommands": "",
+        "allFormats": "",
+        "qos": 0,
+        "x": 214.5,
+        "y": 442.25,
+        "wires": [
+            [
+                "1c388f3c.60cee1"
+            ]
+        ]
+    },
+    {
+        "id": "1c388f3c.60cee1",
+        "type": "debug",
+        "z": "e7323d4.2a3d3c",
+        "name": "output",
+        "active": true,
+        "console": "false",
+        "complete": "payload",
+        "x": 372.5,
+        "y": 443.5,
+        "wires": []
+    },
+    {
+        "id": "6bd44354.175c6c",
+        "type": "comment",
+        "z": "e7323d4.2a3d3c",
+        "name": "Michael,  my idea works as well.  debug input.",
+        "info": "",
+        "x": 392.5,
+        "y": 183.75,
+        "wires": []
+    },
+    {
+        "id": "1d4ad495.30bbe3",
+        "type": "inject",
+        "z": "7860118d.39a41",
+        "name": "",
+        "topic": "Test Spin",
+        "payload": "{ \"action\": \"#spin\" }",
+        "payloadType": "json",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "x": 1140,
+        "y": 663,
+        "wires": [
+            [
+                "c2946500.7481b8",
+                "6012060d.d1a2"
+            ]
+        ]
+    },
+    {
+        "id": "ea9cc75.73a0c38",
+        "type": "inject",
+        "z": "7860118d.39a41",
+        "name": "",
+        "topic": "Test Color",
+        "payload": "{\"action\": \"#color\"}",
+        "payloadType": "json",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "x": 1141,
+        "y": 566,
+        "wires": [
+            [
+                "c2946500.7481b8",
+                "6012060d.d1a2"
+            ]
+        ]
+    },
+    {
+        "id": "8590fc69.9dfad",
+        "type": "inject",
+        "z": "7860118d.39a41",
+        "name": "",
+        "topic": "Test Back",
+        "payload": "{\"action\": \"#back\"}",
+        "payloadType": "json",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "x": 1140,
+        "y": 520,
+        "wires": [
+            [
+                "c2946500.7481b8",
+                "6012060d.d1a2"
+            ]
+        ]
+    },
+    {
+        "id": "cbdc32ba.98ef2",
+        "type": "comment",
+        "z": "7860118d.39a41",
+        "name": "* Car and Robot arm control is In Progress",
+        "info": "",
+        "x": 820,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "6871525e.c97764",
+        "type": "function",
+        "z": "7860118d.39a41",
+        "name": "Car-Control",
+        "func": "if(msg.payload.car) {\n    msg.deviceId = 'Car';\n    msg.deviceType = 'Robot';\n    msg.eventCommandType = 'Run';\n\n    msg.payload.action = '#start-engine';\n    return msg;\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 470,
+        "y": 920,
+        "wires": [
+            []
+        ]
+    }
+]
